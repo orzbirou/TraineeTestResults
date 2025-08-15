@@ -56,6 +56,7 @@ export class DataPageComponent {
     // Initialize store from URL params if present
     const qParam = this.route.snapshot.queryParamMap.get('q');
     const pParam = this.route.snapshot.queryParamMap.get('p');
+    const selParam = this.route.snapshot.queryParamMap.get('sel');
     
     const initialParams: { filterText?: string; pageIndex?: number } = {};
     if (qParam !== null) {
@@ -72,6 +73,11 @@ export class DataPageComponent {
     if (Object.keys(initialParams).length > 0) {
       this.store.hydrateFromUrl(initialParams);
     }
+    
+    // Set initial selection if present and different
+    if (selParam !== null && selParam !== this.store.selectedRowId()) {
+      this.store.selectRow(selParam);
+    }
 
     // Load initial data if needed
     if (this.store.results().length === 0) {
@@ -84,6 +90,7 @@ export class DataPageComponent {
     this.route.queryParamMap.subscribe(params => {
       const qParam = params.get('q');
       const pParam = params.get('p');
+      const selParam = params.get('sel');
       
       const urlParams: { filterText?: string; pageIndex?: number } = {};
       
@@ -99,6 +106,15 @@ export class DataPageComponent {
         }
       }
 
+      // Update selection if different
+      if (selParam !== this.store.selectedRowId()) {
+        if (selParam === null) {
+          this.store.clearSelection();
+        } else {
+          this.store.selectRow(selParam);
+        }
+      }
+
       // Hydrate store only if we have valid params
       if (Object.keys(urlParams).length > 0) {
         this.store.hydrateFromUrl(urlParams);
@@ -107,12 +123,19 @@ export class DataPageComponent {
 
     // Keep URL in sync with state
     effect(() => {
+      const queryParams: { q?: string; p?: number; sel?: string | null } = {
+        q: this.store.filterText(),
+        p: this.store.pageIndex()
+      };
+
+      const selectedId = this.store.selectedRowId();
+      if (selectedId !== null) {
+        queryParams.sel = selectedId;
+      }
+
       this.router.navigate([], {
         relativeTo: this.route,
-        queryParams: { 
-          q: this.store.filterText(), 
-          p: this.store.pageIndex() 
-        },
+        queryParams,
         replaceUrl: true
       });
     });
