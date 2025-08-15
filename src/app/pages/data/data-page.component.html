@@ -1,4 +1,42 @@
 <div class="data-container">
-  <h1>Data Page</h1>
-  <p>This is the data page component.</p>
+  <mat-form-field>
+    <mat-label>Filter (name/subject)</mat-label>
+    <input matInput #filterInput (input)="onFilterChange(filterInput.value)">
+  </mat-form-field>
+
+  <table mat-table [dataSource]="page()">
+    <!-- Trainee Name Column -->
+    <ng-container matColumnDef="traineeName">
+      <th mat-header-cell *matHeaderCellDef>Trainee Name</th>
+      <td mat-cell *matCellDef="let result">{{result.traineeName}}</td>
+    </ng-container>
+
+    <!-- Subject Column -->
+    <ng-container matColumnDef="subject">
+      <th mat-header-cell *matHeaderCellDef>Subject</th>
+      <td mat-cell *matCellDef="let result">{{result.subject}}</td>
+    </ng-container>
+
+    <!-- Grade Column -->
+    <ng-container matColumnDef="grade">
+      <th mat-header-cell *matHeaderCellDef>Grade</th>
+      <td mat-cell *matCellDef="let result">{{result.grade}}</td>
+    </ng-container>
+
+    <!-- Date Column -->
+    <ng-container matColumnDef="date">
+      <th mat-header-cell *matHeaderCellDef>Date</th>
+      <td mat-cell *matCellDef="let result">{{result.date}}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="filtered().length"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize()"
+    (page)="onPageChange($event.pageIndex)">
+  </mat-paginator>
 </div>
