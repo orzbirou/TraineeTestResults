@@ -8,7 +8,7 @@ export const routes: Routes = [
   },
   {
     path: 'data',
-    loadComponent: () => import('./pages/data/data-page.component')
+    loadComponent: () => import('./pages/data/data-page/data-page.component')
       .then(m => m.DataPageComponent)
   },
   {

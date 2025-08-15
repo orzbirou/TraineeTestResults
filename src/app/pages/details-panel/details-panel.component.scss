@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.form-row {
+  margin-bottom: 1rem;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+mat-card-actions {
+  padding: 1rem;
+  gap: 0.5rem;
+  
+  button {
+    margin-left: 0.5rem;
+  }
+}

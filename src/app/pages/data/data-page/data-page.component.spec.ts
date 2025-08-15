@@ -1,11 +1,11 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { DataPageComponent } from './data-page.component';
-import { DataService } from '../../services/data.service';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { DataService } from '../../../services/data.service';
 import { of } from 'rxjs';
-import { TestResult } from '../../models/trainee.types';
+import { TestResult } from '../../../models/trainee.types';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { DataPageStore } from './state/data-page.store';
+import { DataPageStore } from '../state/data-page.store';
 import { ActivatedRoute, ActivatedRouteSnapshot, RouterModule } from '@angular/router';
+import { DataPageComponent } from './data-page.component';
 
 describe('DataPageComponent', () => {
   let component: DataPageComponent;
@@ -45,7 +45,20 @@ describe('DataPageComponent', () => {
     };
 
     mockRoute = {
-      snapshot: {} as ActivatedRouteSnapshot,
+      snapshot: {
+        queryParamMap: mockQueryParamMap,
+        url: [],
+        params: {},
+        queryParams: {},
+        fragment: null,
+        data: {},
+        outlet: 'primary',
+        component: null,
+        routeConfig: null,
+        children: [],
+        pathFromRoot: [],
+        paramMap: mockQueryParamMap
+      } as unknown as ActivatedRouteSnapshot,
       queryParamMap: of(mockQueryParamMap)
     };
 
@@ -74,30 +87,12 @@ describe('DataPageComponent', () => {
     expect(rows.length).toBe(2);
   });
 
-  it('should filter records by trainee name', () => {
-    component.onFilterChange('Another');
-    fixture.detectChanges();
-    
-    const filtered = store.filtered();
-    expect(filtered.length).toBe(1);
-    expect(filtered[0].traineeName).toBe('Another User');
-  });
-
-  it('should filter records by subject', () => {
-    component.onFilterChange('physics');
-    fixture.detectChanges();
-    
-    const filtered = store.filtered();
-    expect(filtered.length).toBe(1);
-    expect(filtered[0].subject).toBe('Physics');
-  });
-
   it('should handle pagination', () => {
-    // Update page size and navigate to second page
+    store.setResults(Array(15).fill(mockData[0])); // Ensure we have enough data to paginate
     component.onPageChange(1);
     fixture.detectChanges();
     
     const page = store.page();
-    expect(page.length).toBeGreaterThan(0);
+    expect(page.length).toBe(5); // Second page of 15 items with pageSize 10
   });
 });

@@ -1,0 +1,61 @@
+<mat-drawer-container>
+  <mat-drawer-content>
+    <div class="page-content">
+      <div class="actions-row">
+        <mat-form-field>
+          <mat-label>Filter (name/subject)</mat-label>
+          <input matInput [value]="store.filterText()" (input)="store.setFilter($any($event.target).value)">
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="onAdd()">Add</button>
+      </div>
+
+      <table mat-table [dataSource]="store.page()">
+        <!-- Trainee Name Column -->
+        <ng-container matColumnDef="traineeName">
+          <th mat-header-cell *matHeaderCellDef>Trainee Name</th>
+          <td mat-cell *matCellDef="let result">{{result.traineeName}}</td>
+        </ng-container>
+
+        <!-- Subject Column -->
+        <ng-container matColumnDef="subject">
+          <th mat-header-cell *matHeaderCellDef>Subject</th>
+          <td mat-cell *matCellDef="let result">{{result.subject}}</td>
+        </ng-container>
+
+        <!-- Grade Column -->
+        <ng-container matColumnDef="grade">
+          <th mat-header-cell *matHeaderCellDef>Grade</th>
+          <td mat-cell *matCellDef="let result">{{result.grade}}</td>
+        </ng-container>
+
+        <!-- Date Column -->
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let result">{{result.date}}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"
+            (click)="store.selectRow(row.id)"
+            [class.selected]="row.id === store.selectedRowId()"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="store.filtered().length"
+        [pageSize]="store.pageSize()"
+        [pageIndex]="store.pageIndex()"
+        (page)="store.setPage($event.pageIndex)">
+      </mat-paginator>
+    </div>
+  </mat-drawer-content>
+
+  <mat-drawer mode="side" position="end" [opened]="!!store.selectedRowId()">
+    <app-details-panel
+      [row]="store.selectedRow()"
+      (save)="onSave($event)"
+      (remove)="onRemove($event)"
+      (cancel)="onCancel()">
+    </app-details-panel>
+  </mat-drawer>
+</mat-drawer-container>
