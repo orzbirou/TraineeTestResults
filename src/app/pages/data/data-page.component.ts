@@ -1,12 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { DataService } from '../../services/data.service';
-import { TestResult } from '../../models/trainee.types';
+import { DataPageStore } from './state/data-page.store';
 import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-data-page',
@@ -23,40 +23,67 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 })
 export class DataPageComponent {
   private dataService = inject(DataService);
-  
-  // Data source
-  results = toSignal(this.dataService.loadResults(), { initialValue: [] as TestResult[] });
-  
-  // UI state
-  filterText = signal('');
-  pageIndex = signal(0);
-  pageSize = signal(10);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  protected store = inject(DataPageStore);
   
   // Table configuration
   displayedColumns = ['traineeName', 'subject', 'grade', 'date'];
   
-  // Computed values
-  filtered = computed(() => {
-    const filter = this.filterText().toLowerCase();
-    return this.results().filter(result => 
-      result.traineeName.toLowerCase().includes(filter) ||
-      result.subject.toLowerCase().includes(filter)
-    );
-  });
-  
-  page = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    const end = start + this.pageSize();
-    return this.filtered().slice(start, end);
-  });
+  constructor() {
+    // Initialize store with URL params if present
+    const initialFilter = this.route.snapshot.queryParamMap.get('q') || '';
+    const initialPage = this.parsePageParam(this.route.snapshot.queryParamMap.get('p'));
+    
+    this.store.setFilter(initialFilter);
+    this.store.setPage(initialPage);
+
+    // Load initial data if needed
+    if (this.store.results().length === 0) {
+      this.dataService.loadResults().subscribe(results => {
+        this.store.setResults(results);
+      });
+    }
+
+    // Subscribe to query param changes for browser back/forward navigation
+    this.route.queryParamMap.subscribe(params => {
+      const newFilter = params.get('q') ?? '';
+      const newPage = this.parsePageParam(params.get('p'));
+      
+      // Only update if values actually changed to avoid feedback loops
+      if (newFilter !== this.store.filterText()) {
+        this.store.setFilter(newFilter);
+      }
+      if (newPage !== this.store.pageIndex()) {
+        this.store.setPage(newPage);
+      }
+    });
+
+    // Keep URL in sync with state
+    effect(() => {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { 
+          q: this.store.filterText(), 
+          p: this.store.pageIndex() 
+        },
+        replaceUrl: true
+      });
+    });
+  }
   
   // Event handlers
   onFilterChange(value: string): void {
-    this.filterText.set(value);
-    this.pageIndex.set(0);
+    this.store.setFilter(value);
+    this.store.setPage(0);
   }
   
   onPageChange(index: number): void {
-    this.pageIndex.set(index);
+    this.store.setPage(index);
+  }
+
+  private parsePageParam(value: string | null): number {
+    const parsed = parseInt(value || '', 10);
+    return isNaN(parsed) ? 0 : parsed;
   }
 }

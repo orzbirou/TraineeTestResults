@@ -1,10 +1,10 @@
 <div class="data-container">
   <mat-form-field>
     <mat-label>Filter (name/subject)</mat-label>
-    <input matInput #filterInput (input)="onFilterChange(filterInput.value)">
+    <input matInput #filterInput [value]="store.filterText()" (input)="onFilterChange(filterInput.value)">
   </mat-form-field>
 
-  <table mat-table [dataSource]="page()">
+  <table mat-table [dataSource]="store.page()">
     <!-- Trainee Name Column -->
     <ng-container matColumnDef="traineeName">
       <th mat-header-cell *matHeaderCellDef>Trainee Name</th>
@@ -34,9 +34,9 @@
   </table>
 
   <mat-paginator
-    [length]="filtered().length"
-    [pageIndex]="pageIndex()"
-    [pageSize]="pageSize()"
+    [length]="store.filtered().length"
+    [pageIndex]="store.pageIndex()"
+    [pageSize]="store.pageSize()"
     (page)="onPageChange($event.pageIndex)">
   </mat-paginator>
 </div>
