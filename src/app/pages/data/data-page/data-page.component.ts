@@ -1,4 +1,4 @@
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../../services/data.service';
 import { DataPageStore } from '../state/data-page.store';
@@ -32,24 +32,46 @@ export class DataPageComponent {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   protected store = inject(DataPageStore);
+  protected detailsValid = signal<boolean>(false);
   
   // Table configuration
   displayedColumns = ['traineeName', 'subject', 'grade', 'date'];
 
   onAdd(): void {
-    const r = this.store.addBlank();
+    this.store.beginCreate();
   }
 
   onSave(updated: TestResult): void {
-    this.store.save(updated);
+    // trim/sanitize quickly:
+    updated = {
+      ...updated,
+      traineeName: updated.traineeName?.trim() ?? '',
+      traineeId: updated.traineeId?.trim() ?? '',
+      subject: updated.subject?.trim() ?? '',
+      grade: Number(updated.grade ?? 0)
+    };
+    if (this.store.isCreating()) {
+      this.store.save(updated);
+      this.store.commitCreate();
+    }
+    else this.store.save(updated);
+    
+    this.store.clearSelection();
+    this.detailsValid?.set?.(false);
   }
 
   onRemove(id: string): void {
     this.store.remove(id);
+    this.detailsValid?.set?.(false);
   }
 
   onCancel(): void {
-    this.store.clearSelection();
+    if (this.store.isCreating()) {
+      this.store.cancelCreate();
+    } else {
+      this.store.clearSelection();
+    }
+    this.detailsValid?.set?.(false);
   }
 
   onRestoreFromJson() {

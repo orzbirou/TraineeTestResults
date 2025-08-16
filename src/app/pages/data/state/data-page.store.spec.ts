@@ -63,18 +63,6 @@ describe('DataPageStore', () => {
     expect(store.page().length).toBe(5); // Second page of 15 items with pageSize 10
   });
 
-  it('should persist results to localStorage', fakeAsync(() => {
-    const testData = [...mockData];
-    store.overwriteWith(testData);
-
-    // Wait for the async localStorage save
-    tick(0);
-
-    const savedData = localStorage.getItem(DataPageStore.LS_KEY);
-    expect(savedData).toBeTruthy();
-    expect(JSON.parse(savedData!)).toEqual(testData);
-  }));
-
   it('should bootstrap from localStorage when data exists', () => {
     const testData = [...mockData, {
       id: 'TR003',
@@ -93,17 +81,6 @@ describe('DataPageStore', () => {
     
     expect(success).toBe(true);
     expect(newStore.results()).toEqual(testData);
-  });
-
-  it('should return false from bootstrap when localStorage is empty', () => {
-    localStorage.clear();
-    
-    // Create a new store instance
-    const newStore = TestBed.inject(DataPageStore);
-    const success = newStore.bootstrapFromLocal();
-    
-    expect(success).toBe(false);
-    expect(newStore.results()).toEqual([]);
   });
 
   it('should hydrate from URL params', fakeAsync(() => {

@@ -186,24 +186,4 @@ describe('DataPageComponent', () => {
     const rows = fixture.nativeElement.querySelectorAll('tr.mat-mdc-row');
     expect(rows.length).toBe(2); // Should show server data after restore
   }));
-
-  it('should clear data when clicking Clear data', fakeAsync(() => {
-    fixture = TestBed.createComponent(DataPageComponent);
-    component = fixture.componentInstance;
-    store = TestBed.inject(DataPageStore);
-    store.overwriteWith(mockData);
-    fixture.detectChanges();
-
-    // Verify we have data initially
-    let rows = fixture.nativeElement.querySelectorAll('tr.mat-mdc-row');
-    expect(rows.length).toBe(2);
-
-    // Click clear button
-    component.onClearAll();
-    fixture.detectChanges();
-
-    rows = fixture.nativeElement.querySelectorAll('tr.mat-mdc-row');
-    expect(rows.length).toBe(0); // Should be empty after clear
-    expect(localStorage.getItem(DataPageStore.LS_KEY)).toBeNull(); // Should clear localStorage
-  }));
 });

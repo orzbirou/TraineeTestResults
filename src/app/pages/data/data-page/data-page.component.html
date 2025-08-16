@@ -7,7 +7,11 @@
           <input matInput [value]="store.filterText()" (input)="store.setFilter($any($event.target).value)">
         </mat-form-field>
 
-        <button mat-raised-button color="primary" (click)="onAdd()">Add</button>
+        <button mat-raised-button color="primary" 
+                (click)="onAdd()"
+                [disabled]="store.isCreating() || (!!store.selectedRowId() && !detailsValid())">
+          Add
+        </button>
         <button mat-stroked-button color="warn" (click)="onRestoreFromJson()">Restore from JSON</button>
         <button mat-button (click)="onClearAll()">Clear data</button>
       </div>
@@ -52,9 +56,11 @@
     </div>
   </mat-drawer-content>
 
-  <mat-drawer mode="side" position="end" [opened]="!!store.selectedRowId()">
+  <mat-drawer mode="side" position="end"
+            [opened]="store.isCreating() || !!store.selectedRowId()">
     <app-details-panel
       [row]="store.selectedRow()"
+      (validity)="detailsValid.set($event)"
       (save)="onSave($event)"
       (remove)="onRemove($event)"
       (cancel)="onCancel()">

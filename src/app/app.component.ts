@@ -7,19 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
   selector: 'app-root',
   standalone: true,
   imports: [MatToolbarModule, RouterLink, RouterLinkActive, RouterOutlet, MatButtonModule],
-  template: `
-    <mat-toolbar color="primary">
-      <span>Trainees</span>
-      <div style="margin-left: 20px;">
-        <a mat-button routerLink="/data" routerLinkActive="active" [queryParamsHandling]="'preserve'">Data</a>
-        <a mat-button routerLink="/analysis" routerLinkActive="active" [queryParamsHandling]="'preserve'">Analysis</a>
-        <a mat-button routerLink="/monitor" routerLinkActive="active" [queryParamsHandling]="'preserve'">Monitor</a>
-      </div>
-    </mat-toolbar>
-
-    <div style="padding:20px">
-      <router-outlet></router-outlet>
-    </div>
-  `
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent {}

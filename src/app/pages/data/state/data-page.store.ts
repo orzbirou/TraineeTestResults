@@ -16,6 +16,7 @@ export class DataPageStore {
   private _pageIndex = signal(0);
   private _pageSize = signal(10);
   private _selectedRowId = signal<string | null>(null);
+  private _draft = signal<TestResult | null>(null);
 
   // Exposed signals (read-only)
   readonly results = this._results.asReadonly();
@@ -24,6 +25,7 @@ export class DataPageStore {
   readonly pageIndex = this._pageIndex.asReadonly();
   readonly pageSize = this._pageSize.asReadonly();
   readonly selectedRowId = this._selectedRowId.asReadonly();
+  readonly isCreating = computed(() => this._draft() !== null);
 
   // Computed values
   readonly filtered = computed(() => {
@@ -41,8 +43,11 @@ export class DataPageStore {
   });
 
   readonly selectedRow = computed(() => {
-    const id = this._selectedRowId();
-    return id ? this._results().find(row => row.id === id) || null : null;
+    const sel = this._selectedRowId();
+    const draft = this._draft();
+    if (draft && sel === draft.id) return draft;
+    if (!sel) return null;
+    return this._results().find(r => r.id === sel) ?? null;
   });
 
   constructor() {
@@ -123,10 +128,14 @@ export class DataPageStore {
   }
 
   save(updated: TestResult): void {
-    this._results.update(results => 
-      results.map(row => row.id === updated.id ? updated : row)
-    );
-    this._selectedRowId.set(updated.id);
+    if (this.isCreating()) {
+      this._draft.set(updated);
+    } else {
+      this._results.update(results => 
+        results.map(row => row.id === updated.id ? updated : row)
+      );
+      this._selectedRowId.set(updated.id);
+    }
   }
 
   remove(id: string): void {
@@ -164,5 +173,27 @@ export class DataPageStore {
     if (params.pageIndex !== undefined) {
       this._pageIndex.set(params.pageIndex);
     }
+  }
+
+  beginCreate(): void {
+    const id = globalThis.crypto?.randomUUID?.() ?? Date.now().toString();
+    const today = new Date().toISOString().slice(0, 10);
+    
+    this._draft.set({ id, traineeId: '', traineeName: '', subject: '', grade: 0, date: today });
+    this._selectedRowId.set(id); // IMPORTANT: open the drawer by selecting the draft
+  }
+
+  commitCreate(): void {
+    const draft = this._draft();
+    if (draft) {
+      this._results.update(results => [draft, ...results]);
+      this._draft.set(null);
+      this._selectedRowId.set(null);
+    }
+  }
+
+  cancelCreate(): void {
+    this._draft.set(null);
+    this._selectedRowId.set(null);
   }
 }

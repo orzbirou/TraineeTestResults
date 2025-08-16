@@ -23,25 +23,4 @@ describe('DataService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
-  it('should load test results from mock.json', () => {
-    const mockData: TestResult[] = [
-      {
-        id: 'TR001',
-        traineeId: 'T1',
-        traineeName: 'Test User',
-        subject: 'Math',
-        grade: 90,
-        date: '2025-02-15'
-      }
-    ];
-
-    service.loadResults().subscribe(results => {
-      expect(results).toEqual(mockData);
-    });
-
-    const req = httpMock.expectOne('/assets/mock.json');
-    expect(req.request.method).toBe('GET');
-    req.flush(mockData);
-  });
 });

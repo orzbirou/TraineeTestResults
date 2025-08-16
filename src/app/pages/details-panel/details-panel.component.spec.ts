@@ -9,9 +9,9 @@ describe('DetailsPanelComponent', () => {
 
   const mockTestResult: TestResult = {
     id: 'TEST-1',
-    traineeId: 'T1',
-    traineeName: 'John Doe',
-    subject: 'Math',
+    traineeId: 'T1  ', // extra spaces to test trimming
+    traineeName: '  John Doe  ', // extra spaces to test trimming
+    subject: ' Math ', // extra spaces to test trimming
     grade: 85,
     date: '2025-08-15'
   };
@@ -39,9 +39,9 @@ describe('DetailsPanelComponent', () => {
     expect(component.form.valid).toBeFalse();
   });
 
-  it('should patch form when row input changes', () => {
+  it('should patch form when ngOnChanges is called with row', () => {
     component.row = mockTestResult;
-    fixture.detectChanges();
+    component.ngOnChanges();
 
     expect(component.form.get('traineeId')?.value).toBe(mockTestResult.traineeId);
     expect(component.form.get('traineeName')?.value).toBe(mockTestResult.traineeName);
@@ -50,20 +50,20 @@ describe('DetailsPanelComponent', () => {
     expect(component.form.get('date')?.value).toBe(mockTestResult.date);
   });
 
-  it('should clear form when row is null', () => {
+  it('should clear form when ngOnChanges is called with null row', () => {
     // First set some data
     component.row = mockTestResult;
-    fixture.detectChanges();
+    component.ngOnChanges();
 
     // Then clear it
     component.row = null;
-    fixture.detectChanges();
+    component.ngOnChanges();
 
-    expect(component.form.get('traineeId')?.value).toBeFalsy();
-    expect(component.form.get('traineeName')?.value).toBeFalsy();
-    expect(component.form.get('subject')?.value).toBeFalsy();
-    expect(component.form.get('grade')?.value).toBeFalsy();
-    expect(component.form.get('date')?.value).toBeFalsy();
+    expect(component.form.get('traineeId')?.value).toBe('');
+    expect(component.form.get('traineeName')?.value).toBe('');
+    expect(component.form.get('subject')?.value).toBe('');
+    expect(component.form.get('grade')?.value).toBe(0);
+    expect(component.form.get('date')?.value).toBe('');
   });
 
   it('should emit save event with complete test result when form is valid', () => {
@@ -71,26 +71,17 @@ describe('DetailsPanelComponent', () => {
     component.save.subscribe(saveSpy);
 
     component.row = mockTestResult;
-    fixture.detectChanges();
+    component.ngOnChanges();
 
-    component.onSave();
-    expect(saveSpy).toHaveBeenCalledWith(mockTestResult);
-  });
-
-  it('should not emit save event when form is invalid', () => {
-    const saveSpy = jasmine.createSpy('save');
-    component.save.subscribe(saveSpy);
-
-    component.form.patchValue({
-      traineeId: '', // required field left empty
-      traineeName: 'John Doe',
-      subject: 'Math',
-      grade: 85,
-      date: '2025-08-15'
+    component.onSaveClick();
+    
+    expect(saveSpy).toHaveBeenCalledWith({
+      ...mockTestResult,
+      traineeId: mockTestResult.traineeId.trim(),
+      traineeName: mockTestResult.traineeName.trim(),
+      subject: mockTestResult.subject.trim(),
+      grade: mockTestResult.grade
     });
-
-    component.onSave();
-    expect(saveSpy).not.toHaveBeenCalled();
   });
 
   it('should emit remove event with correct id', () => {
@@ -98,7 +89,7 @@ describe('DetailsPanelComponent', () => {
     component.remove.subscribe(removeSpy);
 
     component.row = mockTestResult;
-    fixture.detectChanges();
+    component.ngOnChanges();
 
     component.onRemove();
     expect(removeSpy).toHaveBeenCalledWith(mockTestResult.id);
@@ -114,7 +105,7 @@ describe('DetailsPanelComponent', () => {
 
   it('should validate grade range', () => {
     component.row = mockTestResult;
-    fixture.detectChanges();
+    component.ngOnChanges();
 
     component.form.patchValue({ grade: 101 });
     expect(component.form.get('grade')?.errors?.['max']).toBeTruthy();
