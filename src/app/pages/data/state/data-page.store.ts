@@ -7,6 +7,8 @@ import { debounceTime, distinctUntilChanged, startWith } from 'rxjs';
   providedIn: 'root'
 })
 export class DataPageStore {
+  public static readonly LS_KEY = 'dataPage.results';
+
   // State signals
   private _results = signal<TestResult[]>([]);
   private _filterText = signal('');
@@ -44,6 +46,22 @@ export class DataPageStore {
   });
 
   constructor() {
+    // Try to load initial results from localStorage
+    try {
+      const saved = localStorage.getItem(DataPageStore.LS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as TestResult[];
+        if (Array.isArray(parsed) && parsed.every(item => 
+          typeof item === 'object' && 
+          'id' in item && 
+          'traineeName' in item && 
+          'subject' in item
+        )) {
+          this._results.set(parsed);
+        }
+      }
+    } catch {}
+
     // Setup debounced filter
     toObservable(this._filterText).pipe(
       startWith(this._filterText()),
@@ -51,6 +69,13 @@ export class DataPageStore {
       distinctUntilChanged()
     ).subscribe(value => {
       this._debouncedFilterText.set(value);
+    });
+
+    // Save results to localStorage whenever they change
+    toObservable(this._results).subscribe(value => {
+      try {
+        localStorage.setItem(DataPageStore.LS_KEY, JSON.stringify(value));
+      } catch {}
     });
   }
 
@@ -64,8 +89,29 @@ export class DataPageStore {
     this._pageIndex.set(index);
   }
 
-  setResults(rows: TestResult[]): void {
-    this._results.set(rows);
+  bootstrapFromLocal(): boolean {
+    try {
+      const raw = localStorage.getItem(DataPageStore.LS_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        this._results.set(parsed);
+        return parsed.length > 0;
+      }
+    } catch {}
+    return false;
+  }
+
+  overwriteWith(rows: TestResult[]) {
+    const arr = Array.isArray(rows) ? rows : [];
+    this._results.set(arr);            // this will persist via the subscription above
+    this._pageIndex.set(0);
+  }
+
+  clearAll() {
+    this._results.set([]);
+    this._selectedRowId.set(null);
+    try { localStorage.removeItem(DataPageStore.LS_KEY); } catch {}
   }
 
   selectRow(id: string): void {

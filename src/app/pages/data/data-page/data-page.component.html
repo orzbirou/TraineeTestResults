@@ -8,6 +8,8 @@
         </mat-form-field>
 
         <button mat-raised-button color="primary" (click)="onAdd()">Add</button>
+        <button mat-stroked-button color="warn" (click)="onRestoreFromJson()">Restore from JSON</button>
+        <button mat-button (click)="onClearAll()">Clear data</button>
       </div>
 
       <table mat-table [dataSource]="store.page()">

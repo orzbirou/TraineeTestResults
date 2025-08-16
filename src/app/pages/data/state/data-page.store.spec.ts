@@ -25,11 +25,17 @@ describe('DataPageStore', () => {
   ];
 
   beforeEach(() => {
+    // Create a fresh localStorage mock before each test
+    const localStorageStore: { [key: string]: string } = {};
+    spyOn(localStorage, 'getItem').and.callFake((key: string) => localStorageStore[key] || null);
+    spyOn(localStorage, 'setItem').and.callFake((key: string, value: string) => { localStorageStore[key] = value; });
+    spyOn(localStorage, 'clear').and.callFake(() => { Object.keys(localStorageStore).forEach(key => delete localStorageStore[key]); });
+    
     TestBed.configureTestingModule({
       providers: [DataPageStore]
     });
     store = TestBed.inject(DataPageStore);
-    store.setResults(mockData);
+    store.overwriteWith(mockData);
   });
 
   it('should be created', () => {
@@ -52,9 +58,52 @@ describe('DataPageStore', () => {
   });
 
   it('should paginate results', () => {
-    store.setResults(Array(15).fill(mockData[0]));
+    store.overwriteWith(Array(15).fill(mockData[0]));
     store.setPage(1);
     expect(store.page().length).toBe(5); // Second page of 15 items with pageSize 10
+  });
+
+  it('should persist results to localStorage', fakeAsync(() => {
+    const testData = [...mockData];
+    store.overwriteWith(testData);
+
+    // Wait for the async localStorage save
+    tick(0);
+
+    const savedData = localStorage.getItem(DataPageStore.LS_KEY);
+    expect(savedData).toBeTruthy();
+    expect(JSON.parse(savedData!)).toEqual(testData);
+  }));
+
+  it('should bootstrap from localStorage when data exists', () => {
+    const testData = [...mockData, {
+      id: 'TR003',
+      traineeId: 'T3',
+      traineeName: 'Bob Wilson',
+      subject: 'Chemistry',
+      grade: 95,
+      date: '2025-01-03'
+    }];
+    
+    localStorage.setItem(DataPageStore.LS_KEY, JSON.stringify(testData));
+
+    // Create a new store instance and bootstrap
+    const newStore = TestBed.inject(DataPageStore);
+    const success = newStore.bootstrapFromLocal();
+    
+    expect(success).toBe(true);
+    expect(newStore.results()).toEqual(testData);
+  });
+
+  it('should return false from bootstrap when localStorage is empty', () => {
+    localStorage.clear();
+    
+    // Create a new store instance
+    const newStore = TestBed.inject(DataPageStore);
+    const success = newStore.bootstrapFromLocal();
+    
+    expect(success).toBe(false);
+    expect(newStore.results()).toEqual([]);
   });
 
   it('should hydrate from URL params', fakeAsync(() => {
@@ -72,4 +121,27 @@ describe('DataPageStore', () => {
     expect(store.filterText()).toBe('new'); // Should not change
     expect(store.pageIndex()).toBe(1);
   }));
+
+  it('should clear all data and localStorage', () => {
+    const localData = [...mockData, {
+      id: 'TR003',
+      traineeId: 'T3',
+      traineeName: 'Bob Wilson',
+      subject: 'Chemistry',
+      grade: 95,
+      date: '2025-01-03'
+    }];
+    
+    // Set up some data first
+    store.overwriteWith(localData);
+    expect(store.results().length).toBe(3);
+    
+    // Clear everything
+    store.clearAll();
+    
+    // Check state was cleared
+    expect(store.results()).toEqual([]);
+    expect(store.selectedRowId()).toBeNull();
+    expect(localStorage.getItem(DataPageStore.LS_KEY)).toBeNull();
+  });
 });

@@ -51,6 +51,16 @@ export class DataPageComponent {
   onCancel(): void {
     this.store.clearSelection();
   }
+
+  onRestoreFromJson() {
+    this.dataService.loadResults().subscribe(rows => {
+      this.store.overwriteWith(rows); // replace current state with the JSON data and persist
+    });
+  }
+
+  onClearAll() {
+    this.store.clearAll(); // empty the table and clear LS
+  }
   
   constructor() {
     // Initialize store from URL params if present
@@ -79,12 +89,8 @@ export class DataPageComponent {
       this.store.selectRow(selParam);
     }
 
-    // Load initial data if needed
-    if (this.store.results().length === 0) {
-      this.dataService.loadResults().subscribe(results => {
-        this.store.setResults(results);
-      });
-    }
+    // Bootstrap from localStorage only
+    this.store.bootstrapFromLocal();
 
     // Subscribe to query param changes for browser back/forward navigation
     this.route.queryParamMap.subscribe(params => {
