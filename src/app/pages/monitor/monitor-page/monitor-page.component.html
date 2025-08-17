@@ -11,11 +11,14 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Name</mat-label>
-      <input matInput #nameBox
-             [value]="store.nameText()"
-             (keydown.enter)="store.applyName(nameBox.value)" />
+      <mat-select multiple
+                  [value]="store.selectedNames()"
+                  (selectionChange)="store.setSelectedNames($event.value)">
+        <mat-option *ngFor="let nm of store.allNames()" [value]="nm">
+          {{ nm }}
+        </mat-option>
+      </mat-select>
     </mat-form-field>
-    <button mat-stroked-button (click)="store.applyName(nameBox.value)">Apply</button>
 
     <mat-checkbox
       [ngModel]="store.showPassed()"

@@ -2,6 +2,21 @@ import { Injectable, computed, signal } from '@angular/core';
 import { DataPageStore } from '../../data/state/data-page.store';
 import type { ChartConfiguration, ChartOptions } from 'chart.js';
 
+/**
+ * AnalysisStore
+ *
+ * Produces Chart.js datasets and manages which charts are visible.
+ *
+ * Charts:
+ * chart1 — Average per trainee (bar)
+ * chart2 — Progress over time (line)
+ * chart3 — Average by subject (bar)
+ *
+ * State:
+ * visibleLeft / visibleRight — the two visible slots
+ * hiddenChart — computed key of the chart not currently shown
+ */
+
 @Injectable({ providedIn: 'root' })
 export class AnalysisStore {
   // 3 chart kinds: chart1=avgByTrainee, chart2=progress(line), chart3=avgBySubject(bar)

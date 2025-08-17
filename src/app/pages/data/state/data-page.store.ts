@@ -3,6 +3,31 @@ import { TestResult } from '../../../models/trainee.types';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, startWith } from 'rxjs';
 
+/**
+ * DataPageStore
+ *
+ * Manages the Data grid state: source rows (localStorage), smart filtering,
+ * pagination (10 per page), selection, and the draft create/edit flow.
+ *
+ * Public API (selection):
+ * selectedRowId() (signal getter), selectRow(id: string | null): void
+ *
+ * Public API (filtering & paging):
+ * setFilter(text: string): void — sets the raw filter text
+ * setPage(index: number): void — sets the current paginator page
+ *
+ * Public API (create/edit/delete):
+ * beginCreate(): void — opens a draft row + details panel
+ * commitCreate(): void — persists the draft into results
+ * cancelCreate(): void — discards the current draft
+ * save(row: TestResult): void — updates an existing row by id
+ * remove(id: string): void — deletes a row by id
+ *
+ * Public API (persistence):
+ * restoreFromJson(): Promise<void> — loads assets/mock.json
+ * clearAll(): void — clears local data
+ */
+
 @Injectable({
   providedIn: 'root'
 })

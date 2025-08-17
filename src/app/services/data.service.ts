@@ -3,6 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { TestResult } from '../models/trainee.types';
 
+/**
+ * DataService
+ *
+ * Loads the initial mock JSON and centralizes data-loading concerns.
+ * This abstraction makes it easy to switch to a real backend later.
+ */
+
 @Injectable({
   providedIn: 'root'
 })

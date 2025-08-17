@@ -24,25 +24,15 @@ describe('AnalysisPageComponent', () => {
     store = TestBed.inject(AnalysisStore);
 
     // Mock store methods to return empty datasets
-    spyOn(store, 'barData').and.returnValue({
-      labels: [],
-      datasets: [{ label: 'Test', data: [] }]
+    spyOn(store, 'getChartConf').and.returnValue({
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Test', data: [] }] },
+      options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
 
-    spyOn(store, 'lineData').and.returnValue({
-      labels: [],
-      datasets: [{ label: 'Test', data: [] }]
-    });
-
-    spyOn(store, 'barOptions').and.returnValue({
-      responsive: true,
-      scales: { y: { beginAtZero: true } }
-    });
-
-    spyOn(store, 'lineOptions').and.returnValue({
-      responsive: true,
-      scales: { y: { beginAtZero: true } }
-    });
+    // Set initial visible charts
+    store.visibleLeft.set('chart1');
+    store.visibleRight.set('chart2');
 
     fixture.detectChanges();
   });
@@ -60,8 +50,8 @@ describe('AnalysisPageComponent', () => {
   it('should render charts', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelectorAll('canvas[baseChart]').length).toBe(2);
-    expect(compiled.querySelectorAll('mat-card-title')[0].textContent).toContain('Average by Subject');
-    expect(compiled.querySelectorAll('mat-card-title')[1].textContent).toContain('Progress Over Time');
+    expect(compiled.querySelectorAll('mat-card-title')[0].textContent).toContain('Left:');
+    expect(compiled.querySelectorAll('mat-card-title')[1].textContent).toContain('Right:');
   });
 
   describe('store interaction', () => {
@@ -88,11 +78,12 @@ describe('AnalysisPageComponent', () => {
     it('should update charts when selections change', () => {
       // Make a selection change
       store.setSelectedSubjects(['Math']);
+      store.setSelectedTrainees(['T1']);
       fixture.detectChanges();
 
-      // Verify that chart data methods were called
-      expect(store.barData).toHaveBeenCalled();
-      expect(store.lineData).toHaveBeenCalled();
+      // Verify that getChartConf was called for both visible charts
+      expect(store.getChartConf).toHaveBeenCalledWith('chart1');
+      expect(store.getChartConf).toHaveBeenCalledWith('chart2');
     });
   });
 });

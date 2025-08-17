@@ -1,0 +1,10 @@
+{
+"entryPoints": [
+"src/app/pages/data/state/data-page.store.ts",
+"src/app/pages/analysis/state/analysis.store.ts",
+"src/app/pages/monitor/state/monitor.store.ts",
+"src/app/services/data.service.ts"
+],
+"out": "docs/api",
+"excludeExternals": true
+}
