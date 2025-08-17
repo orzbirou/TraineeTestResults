@@ -19,22 +19,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      # Build for GitHub Pages (project site): base-href = /<repo>/
-      - run: npx ng build --configuration production --base-href "/${{ github.event.repository.name }}/"
-      # SPA fallback so deep links work
+
+      # npm ci ייכשל אם אין package-lock.json, אז ננסה ci ואם נכשל נ fallback ל-install
+      - name: Install deps
+        run: npm ci || npm install
+
+      # דיאגנוסטיקה קצרה – יעזור אם תהיה תקלה
+      - name: Show versions
+        run: |
+          node -v
+          npm -v
+          npx -y @angular/cli@latest version || true
+
+      # build עם base-href לפי שם הריפו
+      - name: Build
+        run: npx ng build --configuration production --base-href "/${{ github.event.repository.name }}/"
+
+      # SPA fallback: אם יש index.html, צור גם 404.html
       - name: SPA 404 fallback
         run: |
-          TARGET_DIR=$(echo dist/*/browser)
+          TARGET_DIR=$(compgen -G "dist/*/browser" > /dev/null && echo dist/*/browser || echo dist/*)
           cp "$TARGET_DIR/index.html" "$TARGET_DIR/404.html"
+
+      # מצא את תיקיית הפלט הנכונה (עם/בלי browser) והעלה כ-artifact
+      - name: Locate build dir
+        id: locate
+        run: |
+          if compgen -G "dist/*/browser" > /dev/null; then
+            echo "dir=$(echo dist/*/browser)" >> $GITHUB_OUTPUT
+          else
+            echo "dir=$(echo dist/*)" >> $GITHUB_OUTPUT
+          fi
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/*/browser
+          path: ${{ steps.locate.outputs.dir }}
+
   deploy:
     environment:
       name: github-pages
