@@ -1,0 +1,39 @@
+<mat-card class="filters">
+  <mat-card-content>
+    <mat-form-field appearance="outline">
+      <mat-label>Trainees</mat-label>
+      <mat-select multiple
+                  [value]="store.selectedTraineeIds()"
+                  (selectionChange)="store.setSelectedTrainees($event.value)">
+        <mat-option *ngFor="let trainee of store.uniqueTraineeIds()" [value]="trainee.id">
+          {{ trainee.name || trainee.id }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Subjects</mat-label>
+      <mat-select multiple
+                  [value]="store.selectedSubjects()"
+                  (selectionChange)="store.setSelectedSubjects($event.value)">
+        <mat-option *ngFor="let s of store.uniqueSubjects()" [value]="s">{{ s }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-card-content>
+</mat-card>
+
+<div class="charts">
+  <mat-card>
+    <mat-card-title>Average by Subject</mat-card-title>
+    <mat-card-content>
+      <canvas baseChart [data]="store.barData()" [options]="store.barOptions()" [type]="'bar'"></canvas>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-title>Progress Over Time</mat-card-title>
+    <mat-card-content>
+      <canvas baseChart [data]="store.lineData()" [options]="store.lineOptions()" [type]="'line'"></canvas>
+    </mat-card-content>
+  </mat-card>
+</div>

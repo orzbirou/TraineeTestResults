@@ -1,0 +1,33 @@
+.filters {
+  margin-bottom: 2rem;
+
+  mat-card-content {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    mat-form-field {
+      flex: 1;
+      min-width: 200px;
+    }
+  }
+}
+
+.charts {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+
+  mat-card {
+    flex: 1;
+    min-width: 400px;
+
+    mat-card-content {
+      padding: 1rem;
+      canvas {
+        width: 100% !important;
+        height: 300px !important;
+      }
+    }
+  }
+}

@@ -1,0 +1,80 @@
+<mat-card class="controls">
+  <mat-card-content>
+    <mat-form-field appearance="outline">
+      <mat-label>IDs</mat-label>
+      <mat-select multiple
+                  [value]="store.selectedIds()"
+                  (selectionChange)="store.selectedIds.set($event.value)">
+        <mat-option *ngFor="let id of store.allIds()" [value]="id">{{ id }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput #nameBox (keydown.enter)="store.applyName(nameBox.value)">
+    </mat-form-field>
+    <button mat-stroked-button (click)="store.applyName(nameBox.value)">Apply</button>
+
+    <mat-checkbox
+      [ngModel]="store.showPassed()"
+      (ngModelChange)="store.showPassed.set($event)">
+      Passed (>= {{ store.passThreshold() }})
+    </mat-checkbox>
+
+    <mat-checkbox
+      [ngModel]="store.showFailed()"
+      (ngModelChange)="store.showFailed.set($event)">
+      Failed (< {{ store.passThreshold() }})
+    </mat-checkbox>
+
+    <span class="spacer"></span>
+    <button mat-stroked-button (click)="exportCsv()">Export CSV</button>
+  </mat-card-content>
+</mat-card>
+
+<mat-card>
+  <mat-card-content>
+    <table mat-table [dataSource]="store.summaries()" class="mat-elevation-z1">
+      <ng-container matColumnDef="traineeName">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let r">{{ r.traineeName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="traineeId">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell *matCellDef="let r">{{ r.traineeId }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="exams">
+        <th mat-header-cell *matHeaderCellDef>Exams</th>
+        <td mat-cell *matCellDef="let r">{{ r.exams }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="avg">
+        <th mat-header-cell *matHeaderCellDef>Avg</th>
+        <td mat-cell *matCellDef="let r">{{ r.avg }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="pass">
+        <th mat-header-cell *matHeaderCellDef>Pass</th>
+        <td mat-cell *matCellDef="let r">{{ r.pass }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="fail">
+        <th mat-header-cell *matHeaderCellDef>Fail</th>
+        <td mat-cell *matCellDef="let r">{{ r.fail }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="lastDate">
+        <th mat-header-cell *matHeaderCellDef>Last Date</th>
+        <td mat-cell *matCellDef="let r">{{ r.lastDate }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row
+          *matRowDef="let row; columns: displayedColumns;"
+          [ngClass]="{ passed: row.avg >= store.passThreshold(), failed: row.avg < store.passThreshold() }">
+      </tr>
+    </table>
+  </mat-card-content>
+</mat-card>
