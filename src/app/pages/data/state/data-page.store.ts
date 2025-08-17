@@ -27,6 +27,13 @@ export class DataPageStore {
   readonly selectedRowId = this._selectedRowId.asReadonly();
   readonly isCreating = computed(() => this._draft() !== null);
 
+  // Combined results including draft if present
+  readonly combined = computed(() => {
+    const d = this._draft();
+    const base = this._results();
+    return d ? [d, ...base] : base;
+  });
+
   // Parse filter tokens into predicates
   private parseFilterToken(token: string): (result: TestResult) => boolean {
     token = token.trim().toLowerCase();
@@ -110,7 +117,7 @@ export class DataPageStore {
   // Computed values
   readonly filtered = computed(() => {
     const text = this._debouncedFilterText();
-    if (!text.trim()) return this._results();
+    if (!text.trim()) return this.combined();
     
     // Split by whitespace, but keep quoted strings together
     const tokens = text.match(/\S+|"[^"]+"/g) || [];
@@ -121,7 +128,7 @@ export class DataPageStore {
     );
     
     // Apply all predicates (AND)
-    return this._results().filter(result => 
+    return this.combined().filter(result => 
       predicates.every(pred => pred(result))
     );
   });
