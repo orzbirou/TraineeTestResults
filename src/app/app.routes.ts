@@ -13,12 +13,12 @@ export const routes: Routes = [
   },
   {
     path: 'analysis',
-    loadComponent: () => import('./pages/analysis/analysis-page.component')
+    loadComponent: () => import('./pages/analysis/analysis-page/analysis-page.component')
       .then(m => m.AnalysisPageComponent)
   },
   {
     path: 'monitor',
-    loadComponent: () => import('./pages/monitor/monitor-page.component')
+    loadComponent: () => import('./pages/monitor/monitor-page/monitor-page.component')
       .then(m => m.MonitorPageComponent)
   },
   {
