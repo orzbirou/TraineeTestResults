@@ -11,7 +11,9 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Name</mat-label>
-      <input matInput #nameBox (keydown.enter)="store.applyName(nameBox.value)">
+      <input matInput #nameBox
+             [value]="store.nameText()"
+             (keydown.enter)="store.applyName(nameBox.value)" />
     </mat-form-field>
     <button mat-stroked-button (click)="store.applyName(nameBox.value)">Apply</button>
 

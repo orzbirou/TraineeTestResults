@@ -4,6 +4,15 @@ import type { ChartConfiguration, ChartOptions } from 'chart.js';
 
 @Injectable({ providedIn: 'root' })
 export class AnalysisStore {
+  // 3 chart kinds: chart1=avgByTrainee, chart2=progress(line), chart3=avgBySubject(bar)
+  readonly visibleLeft  = signal<'chart1'|'chart2'|'chart3'>('chart1');
+  readonly visibleRight = signal<'chart1'|'chart2'|'chart3'>('chart2');
+  readonly hiddenChart  = computed(() => {
+    const all: Array<'chart1'|'chart2'|'chart3'> = ['chart1','chart2','chart3'];
+    const l = this.visibleLeft(), r = this.visibleRight();
+    return all.find(c => c !== l && c !== r)!;
+  });
+
   constructor(private dataPageStore: DataPageStore) {}
 
   // Source data
@@ -128,5 +137,30 @@ export class AnalysisStore {
         y: { beginAtZero: true }
       }
     };
+  }
+
+  // New bar by trainee
+  avgByTraineeData(): ChartConfiguration<'bar'>['data'] {
+    const arr = this.filteredResults();
+    const by = new Map<string, { name: string; grades: number[] }>();
+    for (const r of arr) {
+      const id = r.traineeId; const name = r.traineeName;
+      if (!by.has(id)) by.set(id, { name, grades: [] });
+      by.get(id)!.grades.push(Number(r.grade ?? 0));
+    }
+    const entries = Array.from(by.entries());
+    const labels = entries.map(([id, v]) => v.name || id);
+    const data = entries.map(([_, v]) => {
+      const avg = v.grades.reduce((a,b)=>a+b,0) / (v.grades.length || 1);
+      return +avg.toFixed(2);
+    });
+    return { labels, datasets: [{ label: 'Average per trainee', data }] };
+  }
+
+  // map chart key -> config
+  getChartConf(key: 'chart1'|'chart2'|'chart3'): { type: 'bar'|'line', data: any, options: any } {
+    if (key === 'chart1') return { type: 'bar',  data: this.avgByTraineeData(), options: this.barOptions() };
+    if (key === 'chart2') return { type: 'line', data: this.lineData(),         options: this.lineOptions() };
+    return                      { type: 'bar',  data: this.barData(),          options: this.barOptions() };
   }
 }

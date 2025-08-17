@@ -23,17 +23,65 @@
 </mat-card>
 
 <div class="charts">
-  <mat-card>
-    <mat-card-title>Average by Subject</mat-card-title>
+  <!-- LEFT slot as a drop target -->
+  <mat-card cdkDropList id="leftList"
+            [cdkDropListConnectedTo]="['hiddenList']"
+            [cdkDropListData]="[]"
+            (cdkDropListDropped)="onDropToLeft($event)">
+    <mat-card-title>Left: {{ store.visibleLeft() }}</mat-card-title>
     <mat-card-content>
-      <canvas baseChart [data]="store.barData()" [options]="store.barOptions()" [type]="'bar'"></canvas>
+      <ng-container [ngSwitch]="store.getChartConf(store.visibleLeft()).type">
+        <canvas *ngSwitchCase="'bar'"
+                baseChart
+                [data]="store.getChartConf(store.visibleLeft()).data"
+                [options]="store.getChartConf(store.visibleLeft()).options"
+                [type]="'bar'"></canvas>
+
+        <canvas *ngSwitchCase="'line'"
+                baseChart
+                [data]="store.getChartConf(store.visibleLeft()).data"
+                [options]="store.getChartConf(store.visibleLeft()).options"
+                [type]="'line'"></canvas>
+      </ng-container>
     </mat-card-content>
   </mat-card>
 
-  <mat-card>
-    <mat-card-title>Progress Over Time</mat-card-title>
+  <!-- RIGHT slot as a drop target -->
+  <mat-card cdkDropList id="rightList"
+            [cdkDropListConnectedTo]="['hiddenList']"
+            [cdkDropListData]="[]"
+            (cdkDropListDropped)="onDropToRight($event)">
+    <mat-card-title>Right: {{ store.visibleRight() }}</mat-card-title>
     <mat-card-content>
-      <canvas baseChart [data]="store.lineData()" [options]="store.lineOptions()" [type]="'line'"></canvas>
+      <ng-container [ngSwitch]="store.getChartConf(store.visibleRight()).type">
+        <canvas *ngSwitchCase="'bar'"
+                baseChart
+                [data]="store.getChartConf(store.visibleRight()).data"
+                [options]="store.getChartConf(store.visibleRight()).options"
+                [type]="'bar'"></canvas>
+
+        <canvas *ngSwitchCase="'line'"
+                baseChart
+                [data]="store.getChartConf(store.visibleRight()).data"
+                [options]="store.getChartConf(store.visibleRight()).options"
+                [type]="'line'"></canvas>
+      </ng-container>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<div class="hidden-zone"
+     cdkDropList
+     id="hiddenList"
+     [cdkDropListConnectedTo]="['leftList','rightList']"
+     [cdkDropListData]="[store.hiddenChart()]">
+
+  <mat-card class="hidden-card mat-elevation-z2"
+            cdkDrag
+            [cdkDragData]="store.hiddenChart()">
+    <mat-card-title>{{ chartTitle(store.hiddenChart()) }}</mat-card-title>
+    <mat-card-content>
+      <!-- This card is the hidden chart placeholder. Drag the whole card to a slot. -->
     </mat-card-content>
   </mat-card>
 </div>
