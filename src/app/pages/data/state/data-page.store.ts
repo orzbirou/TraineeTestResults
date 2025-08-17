@@ -27,12 +27,102 @@ export class DataPageStore {
   readonly selectedRowId = this._selectedRowId.asReadonly();
   readonly isCreating = computed(() => this._draft() !== null);
 
+  // Parse filter tokens into predicates
+  private parseFilterToken(token: string): (result: TestResult) => boolean {
+    token = token.trim().toLowerCase();
+    if (!token) return () => true;
+
+    // Key:value format
+    const kvMatch = token.match(/^([a-z]+):(.+)$/);
+    if (kvMatch) {
+      const [_, key, value] = kvMatch;
+      
+      // Handle different key types
+      switch (key) {
+        case 'id':
+        case 'i':
+          return (r) => r.traineeId.toLowerCase().includes(value);
+          
+        case 'name':
+        case 'n':
+          return (r) => r.traineeName.toLowerCase().includes(value);
+          
+        case 'subject':
+        case 's':
+          return (r) => r.subject.toLowerCase().includes(value);
+          
+        case 'grade':
+        case 'g':
+          // Handle grade ranges and comparisons
+          const rangeMatch = value.match(/^(\d+)-(\d+)$/);
+          if (rangeMatch) {
+            const [_, min, max] = rangeMatch;
+            return (r) => {
+              const g = Number(r.grade);
+              return g >= Number(min) && g <= Number(max);
+            };
+          }
+          
+          const compareMatch = value.match(/^([<>])(\d+)$/);
+          if (compareMatch) {
+            const [_, op, val] = compareMatch;
+            const num = Number(val);
+            return (r) => {
+              const g = Number(r.grade);
+              return op === '>' ? g > num : g < num;
+            };
+          }
+          
+          return (r) => Number(r.grade) === Number(value);
+          
+        case 'date':
+        case 'd':
+          // Handle date ranges and comparisons
+          const dateRangeMatch = value.match(/^(.+?)[..-](.+)$/);
+          if (dateRangeMatch) {
+            const [_, start, end] = dateRangeMatch;
+            return (r) => {
+              const d = r.date || '';
+              return d >= start && d <= end;
+            };
+          }
+          
+          const dateCompareMatch = value.match(/^([<>])(.+)$/);
+          if (dateCompareMatch) {
+            const [_, op, date] = dateCompareMatch;
+            return (r) => {
+              const d = r.date || '';
+              return op === '>' ? d > date : d < date;
+            };
+          }
+          
+          return (r) => (r.date || '').includes(value);
+      }
+    }
+    
+    // Plain text: match traineeId OR name OR subject
+    return (r) => 
+      r.traineeId.toLowerCase().includes(token) ||
+      r.traineeName.toLowerCase().includes(token) ||
+      r.subject.toLowerCase().includes(token);
+  }
+
   // Computed values
   readonly filtered = computed(() => {
-    const filter = this._debouncedFilterText().toLowerCase();
-    return this._results().filter(result =>
-      result.traineeName.toLowerCase().includes(filter) ||
-      result.subject.toLowerCase().includes(filter)
+    const text = this._debouncedFilterText();
+    if (!text.trim()) return this._results();
+    
+    // Split by whitespace, but keep quoted strings together
+    const tokens = text.match(/\S+|"[^"]+"/g) || [];
+    
+    // Build array of predicates (one per token)
+    const predicates = tokens.map(t => 
+      t.startsWith('"') ? this.parseFilterToken(t.slice(1,-1)) : this.parseFilterToken(t)
+    );
+    
+    // Apply all predicates (AND)
+    return this._results().filter(result => 
+      predicates.every(pred => pred(result))
     );
   });
 
